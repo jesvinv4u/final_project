@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import './AdminHome.css'; // Create this CSS file
+import './Adminhome.css'; // Create this CSS file
 
 
 const AdminHome = () => {

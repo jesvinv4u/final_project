@@ -12,18 +12,40 @@ function Login() {
     setLoginInfo({ ...loginInfo, [name]: value });
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const { email, password } = loginInfo;
-
-    if (email === 'admin@example.com' && password === 'admin123') {
-      navigate('/admin');
-    } else if (email === 'user@example.com' && password === 'user123') {
-      navigate('/home');
-    } else {
-      setError('❌ Invalid email or password');
+    setError('');
+  
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: loginInfo.email,
+          password: loginInfo.password,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        localStorage.setItem("token", data.token); // ✅ Store JWT token
+        localStorage.setItem("role", data.user.role); // ✅ Store role
+  
+        // Redirect based on role
+        if (data.user.role === "admin") {
+          navigate('/admin');
+        } else {
+          navigate('/home');
+        }
+      } else {
+        setError(data.message || '❌ Invalid email or password');
+      }
+    } catch (error) {
+      setError('❌ Server error, please try again later.');
     }
   };
+  
 
   return (
     <div className="login-container">

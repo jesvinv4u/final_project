@@ -16,100 +16,73 @@ function Signup() {
     setSignupInfo({ ...signupInfo, [name]: value });
   };
 
-  const handleSignup = (e) => {
+  // ✅ Make handleSignup an async function
+  const handleSignup = async (e) => {
     e.preventDefault();
+    
     if (signupInfo.password !== signupInfo.confirmPassword) {
       setError("🔒 Passwords don't match!");
       return;
     }
-    setError('');
-    console.log('Signing up with:', signupInfo);
+
+    try {
+      const response = await fetch('/api/auth/register', { // ✅ 'await' works inside async function
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: signupInfo.email.split("@")[0], // Extract name from email
+          email: signupInfo.email,
+          password: signupInfo.password,
+          role: "user",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('✅ Registration Successful!');
+      } else {
+        setError(data.message);
+      }
+    } catch (error) {
+      setError('❌ Failed to register.');
+    }
   };
 
   return (
     <div className="signup-container">
-      <div className="floating-emojis">
-        <span>🏈</span>
-        <span>🏸</span>
-        <span>📚</span>
-        <span>💻</span>
-        <span>🍔</span>
-      </div>
+      <form onSubmit={handleSignup}>
+        <input
+          type="email"
+          name="email"
+          value={signupInfo.email}
+          onChange={handleChange}
+          placeholder="Enter email"
+          required
+        />
+        <input
+          type="password"
+          name="password"
+          value={signupInfo.password}
+          onChange={handleChange}
+          placeholder="Enter password"
+          required
+        />
+        <input
+          type="password"
+          name="confirmPassword"
+          value={signupInfo.confirmPassword}
+          onChange={handleChange}
+          placeholder="Confirm password"
+          required
+        />
+        
+        {error && <div className="error-message">🚨 {error}</div>}
 
-      <div className="signup-box">
-        <div className="signup-header">
-          <h1>🎉 Join Campus Life! 🎓</h1>
-          <p>Create your account in 30 seconds ⏳</p>
-        </div>
+        <button type="submit" className="signup-button">🎓 Create Account</button>
 
-        <form onSubmit={handleSignup}>
-          <div className="input-group">
-            <label>📧 Campus Email:</label>
-            <input
-              type="email"
-              name="email"
-              value={signupInfo.email}
-              onChange={handleChange}
-              placeholder="student@university.edu"
-              required
-            />
-          </div>
-
-          <div className="password-section">
-            <div className="input-group">
-              <label>🔑 Create Password:</label>
-              <input
-                type="password"
-                name="password"
-                value={signupInfo.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
-            <div className="input-group">
-              <label>✅ Confirm Password:</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={signupInfo.confirmPassword}
-                onChange={handleChange}
-                placeholder="••••••••"
-                required
-              />
-            </div>
-          </div>
-
-          {error && <div className="error-message">🚨 {error}</div>}
-
-          <div className="terms-section">
-            <input type="checkbox" id="terms" required />
-            <label htmlFor="terms">📝 I agree to Terms & Conditions</label>
-          </div>
-
-          <button type="submit" className="signup-button">
-            🎓 Create Account
-          </button>
-
-          <div className="social-signup">
-            <p>⚡ Quick Signup With:</p>
-            <div className="social-buttons">
-              <button type="button" className="google-btn">
-                🅖 Google
-              </button>
-              <button type="button" className="microsoft-btn">
-                Ⓜ️ Microsoft
-              </button>
-            </div>
-          </div>
-        </form>
-
-        <div className="signup-footer">
-          <p>🏠 Already part of our hostel? <Link to="/">Login Here</Link></p>
-          <p>📞 Need help? <Link to="/support">Contact Support</Link></p>
-        </div>
-      </div>
+        <p>🏠 Already have an account? <Link to="/">Login Here</Link></p>
+      </form>
     </div>
   );
 }

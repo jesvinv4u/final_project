@@ -2,8 +2,8 @@ import React from "react";
 import {BrowserRouter as Router, Routes, Route, Navigate, Link} from "react-router-dom";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
-import Homepage from "./components/user/Homepage";
-import AdminHome from "./components/admin/AdminHome";
+import HomePage from "./components/user/Homepage";
+import Adminhome from "./components/admin/Adminhome";
 import RoomAllocation from "./components/admin/RoomAllocation";
 import OutpassData from './components/admin/OutpassData';
 import ComplaintsPage from "./components/admin/ComplaintsPage";
@@ -34,7 +34,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
 
         {/* User Routes */}
-        <Route path="/home" element={<Homepage />} />
+        <Route path="/home" element={<HomePage />} />
         <Route path="/experiences" element={<ExperiencesPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/resources" element={<ResourcesPage />} />
@@ -48,7 +48,7 @@ function App() {
 
 
         {/* Admin Routes */}
-        <Route path="/admin" element={<AdminHome />} />
+        <Route path="/admin" element={<Adminhome />} />
         <Route path="/room-allocation" element={<RoomAllocation />} />
         <Route path="/outpass-data" element={<OutpassData />} />
         <Route path="/complaints-page" element={<ComplaintsPage />} />
