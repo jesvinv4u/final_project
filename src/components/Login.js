@@ -5,6 +5,7 @@ import './Login.css';
 function Login() {
   const [loginInfo, setLoginInfo] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false); // ✅ Prevent multiple clicks
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -15,24 +16,26 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-  
+    setLoading(true); // ✅ Disable button during request
+
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: loginInfo.email,
-          password: loginInfo.password,
-        }),
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(loginInfo),
       });
-  
+
       const data = await response.json();
-  
+      console.log("📌 Login Response:", data); // ✅ Debugging output
+
       if (response.ok) {
         localStorage.setItem("token", data.token); // ✅ Store JWT token
-        localStorage.setItem("role", data.user.role); // ✅ Store role
-  
-        // Redirect based on role
+        localStorage.setItem("role", data.user.role); // ✅ Store user role
+        localStorage.setItem("user", JSON.stringify(data.user)); // ✅ Store user details
+        
+        alert(`✅ Welcome, ${data.user.name}!`);
+        
+        // ✅ Redirect based on role
         if (data.user.role === "admin") {
           navigate('/admin');
         } else {
@@ -42,10 +45,12 @@ function Login() {
         setError(data.message || '❌ Invalid email or password');
       }
     } catch (error) {
+      console.error("❌ Login Error:", error);
       setError('❌ Server error, please try again later.');
+    } finally {
+      setLoading(false); // ✅ Re-enable button
     }
   };
-  
 
   return (
     <div className="login-container">
@@ -90,8 +95,8 @@ function Login() {
           
           {error && <div className="error-message">🚨 {error}</div>}
           
-          <button type="submit" className="login-button">
-            🚪 Login
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? "⏳ Logging in..." : "🚪 Login"}
           </button>
           
           <div className="social-login">
