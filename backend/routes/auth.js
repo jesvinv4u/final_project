@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const Admin = require('../models/admin'); // ✅ Import admin model
+const Admin = require('../models/admin');
 require('dotenv').config();
 
 const router = express.Router();
@@ -12,60 +12,37 @@ router.get('/', (req, res) => {
   res.json({ message: '✅ Auth API is working!' });
 });
 
-// ✅ User/Admin Registration Route
+// ✅ User Registration Route (Admins are NOT allowed to register here)
 router.post('/register', async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password } = req.body;
 
   try {
-    // ✅ Validate Required Fields
     if (!name || !email || !password) {
       return res.status(400).json({ message: '❌ All fields (name, email, password) are required' });
     }
 
-    // ✅ Ensure Password is Strong Enough
-    if (password.length < 6) {
-      return res.status(400).json({ message: '❌ Password must be at least 6 characters long' });
+    const emailLower = email.toLowerCase();
+    const existingUser = await User.findOne({ email: emailLower });
+
+    if (existingUser) {
+      return res.status(400).json({ message: '❌ User with this email already exists' });
     }
 
-    // ✅ Check if email already exists in both collections
-    const existingUser = await User.findOne({ email });
-    const existingAdmin = await Admin.findOne({ email });
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-    if (existingUser || existingAdmin) {
-      return res.status(400).json({ message: '❌ User/Admin with this email already exists' });
-    }
+    const newUser = new User({
+      name,
+      email: emailLower,
+      password: hashedPassword,
+      role: 'user',
+      status: "new" // ✅ Set status as "new" for fresh users
+    });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    await newUser.save();
 
-    // ✅ Set Default Role
-    const userRole = role?.toLowerCase() || 'user'; // Default to "user" if no role is provided
-
-    // ✅ Validate Role
-    if (!['admin', 'user'].includes(userRole)) {
-      return res.status(400).json({ message: '❌ Invalid role. Allowed roles: admin, user' });
-    }
-
-    let newAccount;
-    if (userRole === 'admin') {
-      newAccount = new Admin({ name, email, password: hashedPassword, role: 'admin' });
-    } else {
-      newAccount = new User({ name, email, password: hashedPassword, role: 'user' });
-    }
-
-    await newAccount.save();
-
-    // ✅ Generate JWT Token
-    const token = jwt.sign(
-      { id: newAccount._id, role: userRole },
-      process.env.JWT_SECRET || "fallback_secret", // ✅ Use fallback secret to prevent crashes
-      { expiresIn: '1h' } // Token expires in 1 hour
-    );
-
-    // ✅ Return Success Response with Token
     res.status(201).json({
-      message: `✅ ${userRole === 'admin' ? 'Admin' : 'User'} Registered Successfully`,
-      user: { id: newAccount._id, name, email, role: userRole },
-      token
+      message: "✅ User Registered Successfully",
+      user: { id: newUser._id, name, email: emailLower, role: "user", status: "new" }
     });
 
   } catch (err) {
@@ -74,24 +51,24 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// ✅ User/Admin Login Route
+
+// ✅ User/Admin Login Route (Admins are added manually but can log in)
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // ✅ Check if user/admin exists
-    const user = await User.findOne({ email }) || await Admin.findOne({ email });
+    const emailLower = email.toLowerCase();
+    const user = await User.findOne({ email: emailLower }) || await Admin.findOne({ email: emailLower });
+
     if (!user) {
       return res.status(400).json({ message: "❌ Invalid email or password" });
     }
 
-    // ✅ Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "❌ Invalid email or password" });
     }
 
-    // ✅ Generate JWT Token
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET || "fallback_secret",
@@ -105,7 +82,8 @@ router.post('/login', async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        status: user.status // ✅ Include status to decide redirection
       }
     });
 
@@ -114,5 +92,6 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ message: "❌ Server error" });
   }
 });
+
 
 module.exports = router;

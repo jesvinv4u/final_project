@@ -34,9 +34,11 @@ function Login() {
         localStorage.setItem("user", JSON.stringify(data.user)); // ✅ Store user details
         
         alert(`✅ Welcome, ${data.user.name}!`);
-        
-        // ✅ Redirect based on role
-        if (data.user.role === "admin") {
+
+        // ✅ Redirect based on role and profile completion status
+        if (data.user.status === "new") {
+          navigate('/profile'); // 🚀 Navigate new users to profile page
+        } else if (data.user.role === "admin") {
           navigate('/admin');
         } else {
           navigate('/home');
@@ -99,14 +101,6 @@ function Login() {
             {loading ? "⏳ Logging in..." : "🚪 Login"}
           </button>
           
-          <div className="social-login">
-            <button type="button" className="google-btn">
-              🅖 Continue with Google
-            </button>
-            <button type="button" className="microsoft-btn">
-              Ⓜ️ Continue with Microsoft
-            </button>
-          </div>
         </form>
         
         <div className="login-footer">

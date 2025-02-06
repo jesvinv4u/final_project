@@ -29,7 +29,7 @@ mongoose.connect(MONGO_URI, {  // ✅ Corrected
 
 
 app.use('/api/auth', require('./routes/auth'));  // ✅ Handles authentication
-app.use('/api/users', require('./routes/user'));  // ✅ Handles user routes
+app.use('/api/user', require('./routes/user'));  // ✅ Handles user routes
 app.use('/api/admin', require('./routes/admin'));  // ✅ Handles admin routes
 
 

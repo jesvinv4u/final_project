@@ -7,9 +7,9 @@ import { Select, SelectItem } from "../ui/select";
 import { Upload } from "../ui/upload";
 import "./Profile.css";
 
-
 const Profile = () => {
   const [formData, setFormData] = useState({});
+  const [submittedData, setSubmittedData] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,11 +18,11 @@ const Profile = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData);
+    setSubmittedData(formData); // ✅ Store submitted data for preview
   };
 
   return (
-    <div className="min-h-screen flex justify-center bg-gray-100 p-8">
+    <div className="min-h-screen flex flex-col items-center bg-gray-100 p-8">
       <Card className="max-w-5xl w-full shadow-lg p-6 bg-white rounded-2xl">
         <h2 className="text-2xl font-bold text-center mb-6">Hostel Joining & Room Booking</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -45,7 +45,7 @@ const Profile = () => {
               <Textarea label="Correspondence Address" name="corrAddress" onChange={handleChange} />
             </div>
           </CardContent>
-          
+
           <CardContent>
             <h3 className="text-xl font-semibold mb-3">Academic Details</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -56,12 +56,12 @@ const Profile = () => {
               <Input label="University/College Name" name="university" onChange={handleChange} required />
             </div>
           </CardContent>
-          
+
           <CardContent>
             <h3 className="text-xl font-semibold mb-3">Hostel & Room Preferences</h3>
             <Input label="Hostel Block/Building Preference" name="hostelPreference" onChange={handleChange} />
           </CardContent>
-          
+
           <CardContent>
             <h3 className="text-xl font-semibold mb-3">Emergency Details</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -73,7 +73,7 @@ const Profile = () => {
               <Input label="Health Insurance Details" name="insurance" onChange={handleChange} />
             </div>
           </CardContent>
-          
+
           <CardContent>
             <h3 className="text-xl font-semibold mb-3">Documents Upload</h3>
             <div className="space-y-4">
@@ -84,7 +84,7 @@ const Profile = () => {
               <Upload label="Parent/Guardian ID Proof" />
             </div>
           </CardContent>
-          
+
           <CardContent>
             <h3 className="text-xl font-semibold mb-3">Declaration & Agreement</h3>
             <label className="flex items-center space-x-2">
@@ -97,7 +97,7 @@ const Profile = () => {
               <span>Consent from Parent/Guardian (if required).</span>
             </label>
           </CardContent>
-          
+
           <div className="flex justify-center">
             <Button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
               Submit Application
@@ -105,6 +105,20 @@ const Profile = () => {
           </div>
         </form>
       </Card>
+
+      {/* ✅ Display Preview of Submitted Data */}
+      {submittedData && (
+        <Card className="max-w-5xl w-full shadow-lg p-6 bg-white rounded-2xl mt-8">
+          <h2 className="text-2xl font-bold text-center mb-6">Submission Preview</h2>
+          <div className="space-y-4">
+            {Object.entries(submittedData).map(([key, value]) => (
+              <p key={key} className="text-gray-700">
+                <strong>{key.replace(/([A-Z])/g, ' $1').toUpperCase()}:</strong> {value}
+              </p>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 };
