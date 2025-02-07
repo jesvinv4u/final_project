@@ -29,11 +29,14 @@ function Login() {
       console.log("📌 Login Response:", data); // ✅ Debugging output
 
       if (response.ok) {
-        localStorage.setItem("token", data.token); // ✅ Store JWT token
-        localStorage.setItem("role", data.user.role); // ✅ Store user role
-        localStorage.setItem("user", JSON.stringify(data.user)); // ✅ Store user details
+        localStorage.setItem("token", data.token); // Store JWT token
+         localStorage.setItem("role", data.user.role); // Store user role
+         localStorage.setItem("user", JSON.stringify(data.user)); // Store user details
+        localStorage.setItem("userId", data.user.id); // Store the user ID
+
+
         
-        alert(`✅ Welcome, ${data.user.name}!`);
+        alert(`✅ Welcome, ${ data.user.id}!`);
 
         // ✅ Redirect based on role and profile completion status
         if (data.user.status === "new") {

@@ -1,30 +1,103 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate from react-router-dom
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Select, SelectItem } from "../ui/select";
-import { Upload } from "../ui/upload";
+import axios from "axios";
 import "./Profile.css";
 
 const Profile = () => {
   const [formData, setFormData] = useState({});
-  const [submittedData, setSubmittedData] = useState(null);
+  const [files, setFiles] = useState([]); // Store selected files
 
+  // Initialize navigate using useNavigate hook
+  const navigate = useNavigate();
+
+  // Retrieve token and userId from localStorage (or adjust to your auth context/props)
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
+  console.log("Retrieved userId:", userId);
+
+
+  // Handle text input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
+    console.log(`Field changed: ${name} = ${value}`);
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSubmittedData(formData); // ✅ Store submitted data for preview
+  // Handle file selection
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    setFiles([...files, ...selectedFiles]);
   };
+
+  // Submit form data along with uploaded files
+  // Submit form data along with uploaded files
+const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const formDataToSend = new FormData();
+
+  // Append profile fields
+  Object.entries(formData).forEach(([key, value]) => {
+    formDataToSend.append(key, value);
+  });
+
+  // Append uploaded files if any
+  if (files.length > 0) {
+    files.forEach((file) => {
+      formDataToSend.append("documents", file);
+    });
+  }
+
+  try {
+    let uploadResponseData = { files: [] };
+    // Only attempt file upload if files exist
+    if (files.length > 0) {
+      const uploadResponse = await axios.post("http://localhost:5000/upload", formDataToSend, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      console.log("✅ Files Uploaded:", uploadResponse.data);
+      uploadResponseData = uploadResponse.data;
+    }
+
+    // Add uploaded file names to profile data (if any)
+    const updatedProfile = {
+      ...formData,
+      documents: uploadResponseData.files,
+      status: "old",
+    };
+
+    // Send Profile Data to Backend
+    const profileResponse = await axios.put(
+      `http://localhost:5000/api/user/${userId}/complete-profile`,
+      updatedProfile,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log("✅ Profile Created:", profileResponse.data);
+    alert("✅ Profile saved successfully!");
+    localStorage.setItem("status", "old");
+    navigate("/home");
+  } catch (error) {
+    console.error("❌ Error saving profile:", error);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-100 p-8">
       <Card className="max-w-5xl w-full shadow-lg p-6 bg-white rounded-2xl">
-        <h2 className="text-2xl font-bold text-center mb-6">Hostel Joining & Room Booking</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">
+          Hostel Joining & Room Booking
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
           <CardContent>
             <h3 className="text-xl font-semibold mb-3">Personal Details</h3>
@@ -77,11 +150,7 @@ const Profile = () => {
           <CardContent>
             <h3 className="text-xl font-semibold mb-3">Documents Upload</h3>
             <div className="space-y-4">
-              <Upload label="Student ID Card (if available)" />
-              <Upload label="Admission Letter" />
-              <Upload label="Address Proof (Aadhar/Passport/Voter ID)" />
-              <Upload label="Recent Passport-size Photos" />
-              <Upload label="Parent/Guardian ID Proof" />
+              <input type="file" multiple onChange={handleFileChange} />
             </div>
           </CardContent>
 
@@ -91,7 +160,7 @@ const Profile = () => {
               <input type="checkbox" name="agreement" required />
               <span>I acknowledge the hostel rules & regulations.</span>
             </label>
-            <br></br>
+            <br />
             <label className="flex items-center space-x-2">
               <input type="checkbox" name="parentConsent" />
               <span>Consent from Parent/Guardian (if required).</span>
@@ -99,26 +168,15 @@ const Profile = () => {
           </CardContent>
 
           <div className="flex justify-center">
-            <Button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+            <Button
+              type="submit"
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            >
               Submit Application
             </Button>
           </div>
         </form>
       </Card>
-
-      {/* ✅ Display Preview of Submitted Data */}
-      {submittedData && (
-        <Card className="max-w-5xl w-full shadow-lg p-6 bg-white rounded-2xl mt-8">
-          <h2 className="text-2xl font-bold text-center mb-6">Submission Preview</h2>
-          <div className="space-y-4">
-            {Object.entries(submittedData).map(([key, value]) => (
-              <p key={key} className="text-gray-700">
-                <strong>{key.replace(/([A-Z])/g, ' $1').toUpperCase()}:</strong> {value}
-              </p>
-            ))}
-          </div>
-        </Card>
-      )}
     </div>
   );
 };
