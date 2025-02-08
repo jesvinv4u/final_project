@@ -64,7 +64,7 @@ const HomePage = () => {
             />
             {dropdownOpen && (
               <div className="profile-dropdown">
-                <Link to="/profile" className="dropdown-item">👤 Profile</Link>
+                <Link to="/profileview" className="dropdown-item">👤 Profile</Link>
                 <Link to="/logout" className="dropdown-item">🚪 Logout</Link>
               </div>
             )}

@@ -1,5 +1,5 @@
 import React from "react";
-import {BrowserRouter as Router, Routes, Route, Navigate, Link} from "react-router-dom";
+import {BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import HomePage from "./components/user/Homepage";
@@ -22,6 +22,7 @@ import Complaints from "./components/user/Complaints";
 import VacateRoom from "./components/user/VacateRoom";
 
 import Profile from "./components/user/Profile"; // Adjust path if needed
+import ProfileView from "./components/user/profileview"; // Adjust path if needed
 
 
 
@@ -45,6 +46,7 @@ function App() {
         <Route path="/complaints" element={<Complaints />} />
         <Route path="/vacate" element={<VacateRoom />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/profileview" element={<ProfileView />} />
 
 
         {/* Admin Routes */}

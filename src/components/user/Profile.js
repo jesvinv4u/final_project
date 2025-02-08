@@ -43,6 +43,7 @@ const handleSubmit = async (e) => {
 
   // Append profile fields
   Object.entries(formData).forEach(([key, value]) => {
+    console.log(formData);
     formDataToSend.append(key, value);
   });
 
@@ -102,7 +103,7 @@ const handleSubmit = async (e) => {
           <CardContent>
             <h3 className="text-xl font-semibold mb-3">Personal Details</h3>
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Full Name" name="fullName" onChange={handleChange} required />
+              <Input label="name" name="name" onChange={handleChange} required />
               <Input label="Date of Birth" name="dob" type="date" onChange={handleChange} required />
               <Select label="Gender" name="gender" onChange={handleChange}>
                 <SelectItem value="male">Male</SelectItem>

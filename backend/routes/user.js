@@ -10,10 +10,13 @@ router.get('/', (req, res) => {
 // GET /me - Get user profile (protected route)
 router.get('/me', authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user.id).select('-password'); // ✅ Fetch user using `userId` from token
+    if (!user) {
+      return res.status(404).json({ message: "❌ User not found" });
+    }
     res.json(user);
   } catch (err) {
-    res.status(500).json({ message: '❌ Server Error' });
+    res.status(500).json({ message: "❌ Server Error" });
   }
 });
 
