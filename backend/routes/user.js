@@ -4,8 +4,16 @@ import User from '../models/user.js';
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-  res.json({ message: '✅ User API is working!' });
+router.get('/', authMiddleware, async (req, res) => {
+  try {
+    if (!req.user.isAdmin) {
+      return res.status(403).json({ message: "❌ Access denied" });
+    }
+    const users = await User.find().select('-password');
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ message: "❌ Error fetching users", error: error.message });
+  }
 });
 
 // GET /me - Get user profile (protected route)
@@ -22,7 +30,7 @@ router.get('/me', authMiddleware, async (req, res) => {
 });
 
 // PUT /:id/complete-profile - Update user profile
-router.put('/:id/complete-profile', async (req, res) => {
+router.put('/:id/complete-profile', authMiddleware, async (req, res) => {
   try {
     console.log("PUT /complete-profile called with id:", req.params.id);
     console.log("Request body:", req.body);
@@ -33,7 +41,7 @@ router.put('/:id/complete-profile', async (req, res) => {
     // Attempt to update the user document
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      { ...updatedFields, status: "old" },
+      { ...updatedFields, status: "old", profileCompleted: true },
       { new: true, runValidators: true }
     ).select('-password');
 

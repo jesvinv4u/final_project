@@ -1,14 +1,24 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import authRoutes from './routes/auth.js';
+import userRoutes from './routes/user.js';
+import adminRoutes from './routes/admin.js';
+import uploadRoutes from './routes/upload.js';
 
-require('dotenv').config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config();
 
 const app = express();
 
 // ✅ Use CORS Middleware
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: ['http://localhost:3000', 'http://localhost:5001'],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -26,22 +36,21 @@ if (!MONGO_URI) {
 
 // ✅ Initialize MongoDB connection with GridFS
 let gfs;
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-  socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-})
-.then(() => {
+try {
+  await mongoose.connect(MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  });
   console.log('✅ MongoDB Connected');
   gfs = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
     bucketName: 'uploads'
   });
-})
-.catch(err => {
+} catch (err) {
   console.error('❌ MongoDB Connection Error:', err);
   process.exit(1);
-});
+}
 
 // Add connection error handler
 mongoose.connection.on('error', err => {
@@ -54,10 +63,10 @@ mongoose.connection.on('disconnected', () => {
 });
 
 // ✅ API Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/user', require('./routes/user'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/upload', require("./routes/upload"));  // Changed path to /api/upload
+app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // ✅ Root Route
 app.get("/", (req, res) => {

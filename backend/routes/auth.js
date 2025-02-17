@@ -1,9 +1,11 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/user');
-const Admin = require('../models/admin');
-require('dotenv').config();
+import express from 'express';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import User from '../models/user.js';
+import Admin from '../models/admin.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const router = express.Router();
 
@@ -12,86 +14,93 @@ router.get('/', (req, res) => {
   res.json({ message: '✅ Auth API is working!' });
 });
 
-// ✅ User Registration Route (Admins are NOT allowed to register here)
+// ✅ Register Route
 router.post('/register', async (req, res) => {
-  const { name, email, password } = req.body;
-
   try {
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: '❌ All fields (name, email, password) are required' });
+    const { name, email, password } = req.body;
+
+    // Check if user already exists
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: "❌ User already exists" });
     }
 
-    const emailLower = email.toLowerCase();
-    const existingUser = await User.findOne({ email: emailLower });
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    if (existingUser) {
-      return res.status(400).json({ message: '❌ User with this email already exists' });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    const newUser = new User({
+    // Create new user
+    user = new User({
       name,
-      email: emailLower,
-      password: hashedPassword,
-      role: 'user',
-      status: "new" // ✅ Set status as "new" for fresh users
+      email,
+      password: hashedPassword
     });
 
-    await newUser.save();
+    await user.save();
 
-    res.status(201).json({
-      message: "✅ User Registered Successfully",
-      user: { id: newUser._id, name, email: emailLower, role: "user", status: "new" }
-    });
-
-  } catch (err) {
-    console.error('❌ Server Error:', err.message);
-    res.status(500).json({ message: `❌ Server Error: ${err.message}` });
-  }
-});
-
-
-// ✅ User/Admin Login Route (Admins are added manually but can log in)
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const emailLower = email.toLowerCase();
-    const user = await User.findOne({ email: emailLower }) || await Admin.findOne({ email: emailLower });
-
-    if (!user) {
-      return res.status(400).json({ message: "❌ Invalid email or password" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "❌ Invalid email or password" });
-    }
-
+    // Create JWT token
     const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET || "fallback_secret",
-      { expiresIn: "1h" }
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
     );
 
     res.json({
-      message: "✅ Login successful!",
+      message: "✅ Registration successful",
       token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
-        status: user.status // ✅ Include status to decide redirection
+        status: user.status
       }
     });
 
-  } catch (err) {
-    console.error("❌ Login Error:", err.message);
-    res.status(500).json({ message: "❌ Server error" });
+  } catch (error) {
+    console.error('Registration error:', error);
+    res.status(500).json({ message: "❌ Server error", error: error.message });
   }
 });
 
+// ✅ Login Route
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-module.exports = router;
+    // Check if user exists
+    const user = await User.findOne({ email }) || await Admin.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "❌ Invalid credentials" });
+    }
+
+    // Verify password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "❌ Invalid credentials" });
+    }
+
+    // Create JWT token
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      message: "✅ Login successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        status: user.status
+      }
+    });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ message: "❌ Server error", error: error.message });
+  }
+});
+
+export default router;

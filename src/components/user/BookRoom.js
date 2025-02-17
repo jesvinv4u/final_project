@@ -94,7 +94,6 @@ const BookRoom = () => {
         <p><strong>Phone:</strong> {userProfile.phone}</p>
         <p><strong>Year of Study:</strong> {userProfile.year}</p>
         <p><strong>Branch:</strong> {userProfile.branch}</p>
-        <p><strong>Hostel Block:</strong> {userProfile.block}</p>
       </div>
 
       {/* Floor Selection */}

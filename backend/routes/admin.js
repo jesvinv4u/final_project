@@ -1,6 +1,6 @@
-const express = require('express');
-const authMiddleware = require('../middleware/authMiddleware'); // ✅ Protect admin routes
-const Admin = require('../models/admin'); 
+import express from 'express';
+import authMiddleware from '../middleware/authMiddleware.js';
+
 const router = express.Router();
 
 // ✅ Public Admin Route (Test if API Works)
@@ -16,4 +16,4 @@ router.get('/dashboard', authMiddleware, async (req, res) => {
   res.json({ message: '✅ Welcome to the Admin Dashboard' });
 });
 
-module.exports = router;
+export default router;
