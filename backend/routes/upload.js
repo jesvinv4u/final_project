@@ -1,38 +1,74 @@
 const express = require("express");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
-
+const { GridFsStorage } = require("multer-gridfs-storage");
+const mongoose = require("mongoose");
+const authMiddleware = require("../middleware/authMiddleware");
+const User = require("../models/user");
 const router = express.Router();
 
-// ✅ Ensure the `uploads/` directory exists before saving files
-const uploadDir = "uploads/";
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
+const MONGO_URI = "mongodb://127.0.0.1:27017/Project";
 
-// ✅ Configure Multer Storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir); // ✅ Save files in `uploads/` folder
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.fieldname + "-" + Date.now() + path.extname(file.originalname));
-  },
+// ✅ Fixed Storage Configuration
+const storage = new GridFsStorage({
+  url: MONGO_URI,
+ 
+  file: (req, file) => {
+    return new Promise((resolve, reject) => {
+      // Let GridFS generate the _id automatically
+      const fileInfo = {
+        filename: file.originalname,  // Keep original filename
+        bucketName: 'uploads',
+        metadata: {
+          uploadedBy: req.user?.id,  // Add user context
+          originalname: file.originalname,
+          mimetype: file.mimetype
+        }
+      };
+      resolve(fileInfo);
+    });
+  }
 });
 
 const upload = multer({ storage });
 
-// ✅ File Upload Route
-router.post("/", upload.array("documents", 5), (req, res) => {
-  if (!req.files || req.files.length === 0) {
-    return res.status(400).json({ message: "❌ No files uploaded" });
-  }
+// ✅ Fixed Upload Route
+router.post("/", 
+  authMiddleware,       // 1. Auth check first
+  upload.array('documents', 5),  // 2. File upload
+  async (req, res) => {  // 3. Handle business logic
+    try {
+      if (!req.files?.length) {
+        return res.status(400).json({ message: "❌ No files uploaded" });
+      }
 
-  res.json({
-    message: "✅ Files uploaded successfully!",
-    files: req.files.map(file => file.filename),
-  });
-});
+      // Get MongoDB-generated file IDs
+      const fileIds = req.files.map(file => file.id);
+
+      // Update user document
+      const updatedUser = await User.findByIdAndUpdate(
+        req.user.id,
+        { $push: { documents: { $each: fileIds } } },
+        { new: true }
+      );
+
+      res.json({
+        message: "✅ Files uploaded successfully!",
+        files: req.files.map(file => ({
+          id: file.id,
+          filename: file.filename,
+          size: file.size,
+          metadata: file.metadata
+        })),
+        user: updatedUser
+      });
+    } catch (error) {
+      console.error("Server Error:", error);
+      res.status(500).json({
+        message: "❌ Server error",
+        error: error.message
+      });
+    }
+  }
+);
 
 module.exports = router;

@@ -1,6 +1,7 @@
-const express = require('express');
-const authMiddleware = require('../middleware/authMiddleware');
-const User = require('../models/user');
+import express from 'express';
+import authMiddleware from '../middleware/authMiddleware.js';
+import User from '../models/user.js';
+
 const router = express.Router();
 
 router.get('/', (req, res) => {
@@ -52,4 +53,4 @@ router.put('/:id/complete-profile', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
