@@ -1,30 +1,24 @@
 import React from "react";
 import {BrowserRouter as Router, Routes, Route, Navigate} from "react-router-dom";
-import Login from "./components/Login";
-import Signup from "./components/Signup";
-import HomePage from "./components/user/Homepage";
-import Adminhome from "./components/admin/Adminhome";
-import RoomAllocation from "./components/admin/RoomAllocation";
-import OutpassData from './components/admin/OutpassData';
-import ComplaintsPage from "./components/admin/ComplaintsPage";
-import VacateRequest from "./components/admin/VacateRequest";
-// import AdminTickets from "./components/admin/AdminTickets";
-// import UserProfile from "./components/user/Profile";
-// import Outpass from "./components/admin/Outpass";
-import AboutPage from "./components/user/AboutPage";
-import ExperiencesPage from "./components/user/ExperiencesPage";
-import ResourcesPage from "./components/user/ResourcesPage";
-import ContactPage from "./components/user/ContactPage";
-import BookRoom from "./components/user/BookRoom";
-import ChangeRoom from "./components/user/ChangeRoom";
-import GenerateOutPass from "./components/user/GenerateOutPass";
-import Complaints from "./components/user/Complaints";
-import VacateRoom from "./components/user/VacateRoom";
-
-import Profile from "./components/user/Profile"; // Adjust path if needed
-import ProfileView from "./components/user/profileview"; // Adjust path if needed
-
-
+import Login from "./components/Login.js";
+import Signup from "./components/Signup.js";
+import HomePage from "./components/user/Homepage.js";
+import Adminhome from "./components/admin/Adminhome.js";
+import RoomAllocation from "./components/admin/RoomAllocation.js";
+import OutpassData from './components/admin/OutpassData.js';
+import ComplaintsPage from "./components/admin/ComplaintsPage.js";
+import VacateRequest from "./components/admin/VacateRequest.js";
+import AboutPage from "./components/user/AboutPage.js";
+import ExperiencesPage from "./components/user/ExperiencesPage.js";
+import ResourcesPage from "./components/user/ResourcesPage.js";
+import ContactPage from "./components/user/ContactPage.js";
+import BookRoom from "./components/user/BookRoom.js";
+import ChangeRoom from "./components/user/ChangeRoom.js";
+import GenerateOutPass from "./components/user/GenerateOutPass.js";
+import Complaints from "./components/user/Complaints.js";
+import VacateRoom from "./components/user/VacateRoom.js";
+import Profile from "./components/user/Profile.js";
+import ProfileView from "./components/user/profileview.js";
 
 function App() {
   return (

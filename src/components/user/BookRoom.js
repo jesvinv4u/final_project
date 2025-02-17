@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import "./bookRoom.css";
 
 const BookRoom = () => {
@@ -10,15 +11,27 @@ const BookRoom = () => {
     5: Array(20).fill(2),
   };
 
-  // Simulated profile data for the logged-in user
-  const userProfile = {
-    name: "Syed Mohammed",
-    email: "syed@mail.com",
-    phone: "1234567890",
-    year: "4th Year",
-    branch: "Computer Science",
-    block: "Block A",
-  };
+  const [userProfile, setUserProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("token");
+  const userId = localStorage.getItem("userId");
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/user/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setUserProfile(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error("❌ Error fetching user profile:", error);
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [token]);
 
   const [rooms, setRooms] = useState(initialRooms);
   const [activeFloor, setActiveFloor] = useState(null);
@@ -87,14 +100,20 @@ const BookRoom = () => {
       <h2 className="text-center mb-4">Book Room for Hostlers</h2>
 
       {/* Display User Profile */}
-      <div className="user-profile mb-4">
-        <h4>User Profile</h4>
-        <p><strong>Name:</strong> {userProfile.name}</p>
-        <p><strong>Email:</strong> {userProfile.email}</p>
-        <p><strong>Phone:</strong> {userProfile.phone}</p>
-        <p><strong>Year of Study:</strong> {userProfile.year}</p>
-        <p><strong>Branch:</strong> {userProfile.branch}</p>
-      </div>
+      {loading ? (
+        <div>Loading profile...</div>
+      ) : userProfile ? (
+        <div className="user-profile mb-4">
+          <h4>User Profile</h4>
+          <p><strong>Name:</strong> {userProfile.name}</p>
+          <p><strong>Email:</strong> {userProfile.email}</p>
+          <p><strong>Contact:</strong> {userProfile.contactNumber}</p>
+          <p><strong>Department:</strong> {userProfile.department}</p>
+          <p><strong>Student ID:</strong> {userProfile.studentID}</p>
+        </div>
+      ) : (
+        <div>❌ Error loading profile</div>
+      )}
 
       {/* Floor Selection */}
       <div className="floors">

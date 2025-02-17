@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent } from "../ui/card";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
-import { Select, SelectItem } from "../ui/select";
+import { Card, CardContent } from "../ui/card.js";
+import { Button } from "../ui/button.js";
+import { Input } from "../ui/input.js";
+import { Textarea } from "../ui/textarea.js";
+import { Select, SelectItem } from "../ui/select.js";
 import axios from "axios";
 import "./Profile.css";
 
@@ -127,9 +127,7 @@ const Profile = () => {
           </CardContent>
 
           <div className="flex justify-center">
-            <Button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
-              Submit Application
-            </Button>
+            <Button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded-md">Submit</Button>
           </div>
         </form>
       </Card>
