@@ -15,12 +15,16 @@ const BookRoom = () => {
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
+  const [rooms, setRooms] = useState(initialRooms);
+  const [activeFloor, setActiveFloor] = useState(null);
+  // recentBooking will be set once a booking request has been submitted & (later) approved
+  const [recentBooking, setRecentBooking] = useState(null);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/api/user/me`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         setUserProfile(response.data);
         setLoading(false);
@@ -33,35 +37,41 @@ const BookRoom = () => {
     fetchUserProfile();
   }, [token]);
 
-  const [rooms, setRooms] = useState(initialRooms);
-  const [activeFloor, setActiveFloor] = useState(null);
-  const [recentBooking, setRecentBooking] = useState(null);
+  const handleBooking = async (floor, roomIndex) => {
+    // Prevent booking if a request has already been submitted
+    if (recentBooking) {
+      alert("You have already submitted a booking request and cannot book again.");
+      return;
+    }
 
-  const handleBooking = (floor, roomIndex) => {
-    if (rooms[floor][roomIndex] > 0) {
-      setRooms((prev) => {
-        const updatedFloor = [...prev[floor]];
-        updatedFloor[roomIndex] -= 1;
-        return { ...prev, [floor]: updatedFloor };
-      });
+    if (!userProfile) {
+      alert("User profile not loaded.");
+      return;
+    }
 
-      const currentDate = new Date();
-      const formattedDate = currentDate.toLocaleDateString();
-      const formattedTime = currentDate.toLocaleTimeString();
+    const currentDate = new Date();
+    const formattedDate = currentDate.toLocaleDateString();
 
-      const bookingDetails = {
-        ...userProfile,
-        floor,
-        roomNumber: roomIndex + 1,
-        date: formattedDate,
-        time: formattedTime,
-      };
+    const bookingRequest = {
+      name: userProfile.name,
+      email: userProfile.email,
+      floor,
+      roomNumber: roomIndex + 1,
+      date: formattedDate,
+    };
 
-      setRecentBooking(bookingDetails);
-
-      alert(`Room ${roomIndex + 1} booked successfully on Floor ${floor}!`);
-    } else {
-      alert(`Room ${roomIndex + 1} on Floor ${floor} is already full.`);
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/room-requests/submit-request",
+        bookingRequest,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert(response.data.message); // "Booking request submitted successfully!"
+      // Save the request details (pending approval)
+      setRecentBooking({ ...bookingRequest, ...userProfile, status: "Pending" });
+    } catch (error) {
+      console.error("Error submitting booking request:", error);
+      alert("Error submitting booking request. Please try again.");
     }
   };
 
@@ -81,7 +91,7 @@ const BookRoom = () => {
                 availability > 0 ? "btn-success" : "btn-danger"
               }`}
               onClick={() => handleBooking(floor, index)}
-              disabled={availability === 0}
+              disabled={availability === 0 || recentBooking !== null}
             >
               {availability === 2
                 ? "2 Available"
@@ -98,24 +108,31 @@ const BookRoom = () => {
   return (
     <div className="container book-room mt-5">
       <h2 className="text-center mb-4">Book Room for Hostlers</h2>
-
-      {/* Display User Profile */}
       {loading ? (
         <div>Loading profile...</div>
       ) : userProfile ? (
         <div className="user-profile mb-4">
           <h4>User Profile</h4>
-          <p><strong>Name:</strong> {userProfile.name}</p>
-          <p><strong>Email:</strong> {userProfile.email}</p>
-          <p><strong>Contact:</strong> {userProfile.contactNumber}</p>
-          <p><strong>Department:</strong> {userProfile.department}</p>
-          <p><strong>Student ID:</strong> {userProfile.studentID}</p>
+          <p>
+            <strong>Name:</strong> {userProfile.name}
+          </p>
+          <p>
+            <strong>Email:</strong> {userProfile.email}
+          </p>
+          <p>
+            <strong>Contact:</strong> {userProfile.contactNumber}
+          </p>
+          <p>
+            <strong>Department:</strong> {userProfile.department}
+          </p>
+          <p>
+            <strong>Student ID:</strong> {userProfile.studentID}
+          </p>
         </div>
       ) : (
         <div>❌ Error loading profile</div>
       )}
 
-      {/* Floor Selection */}
       <div className="floors">
         <div className="floor-buttons">
           {Object.keys(rooms).map((floor) => (
@@ -131,20 +148,27 @@ const BookRoom = () => {
         {activeFloor && renderRooms(activeFloor)}
       </div>
 
-      {/* Recent Booking Details */}
       {recentBooking && (
         <div className="recent-booking mt-5">
           <h4 className="text-center">Recent Booking Receipt</h4>
-          <p><strong>Date:</strong> {recentBooking.date}</p>
-          <p><strong>Time:</strong> {recentBooking.time}</p>
-          <p><strong>Name:</strong> {recentBooking.name}</p>
-          <p><strong>Email:</strong> {recentBooking.email}</p>
-          <p><strong>Phone:</strong> {recentBooking.phone}</p>
-          <p><strong>Year:</strong> {recentBooking.year}</p>
-          <p><strong>Branch:</strong> {recentBooking.branch}</p>
-          <p><strong>Hostel Block:</strong> {recentBooking.block}</p>
-          <p><strong>Floor:</strong> {recentBooking.floor}</p>
-          <p><strong>Room Number:</strong> {recentBooking.roomNumber}</p>
+          <p>
+            <strong>Date:</strong> {recentBooking.date}
+          </p>
+          <p>
+            <strong>Name:</strong> {recentBooking.name}
+          </p>
+          <p>
+            <strong>Email:</strong> {recentBooking.email}
+          </p>
+          <p>
+            <strong>Floor:</strong> {recentBooking.floor}
+          </p>
+          <p>
+            <strong>Room Number:</strong> {recentBooking.roomNumber}
+          </p>
+          <p>
+            <strong>Status:</strong> {recentBooking.status}
+          </p>
         </div>
       )}
     </div>
