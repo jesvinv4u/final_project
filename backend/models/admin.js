@@ -17,12 +17,8 @@ const adminSchema = new mongoose.Schema({
   role: { 
     type: String, 
     default: 'admin' 
-  },
-  createdAt: { 
-    type: Date, 
-    default: Date.now 
   }
-});
+},{ collection: 'admin' });
 
 const Admin = mongoose.model('admin', adminSchema);
 

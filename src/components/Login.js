@@ -36,7 +36,7 @@ function Login() {
 
 
         
-        alert(`✅ Welcome, ${ data.user.id}!`);
+        alert(`✅ Welcome, ${ data.user.role}!`);
 
         // ✅ Redirect based on role and profile completion status
         if (data.user.status === "new") {

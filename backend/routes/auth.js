@@ -52,7 +52,8 @@ router.post('/register', async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        status: user.status
+        status: user.status,
+        role: user.role
       }
     });
 
@@ -70,13 +71,13 @@ router.post('/login', async (req, res) => {
     // Check if user exists
     const user = await User.findOne({ email }) || await Admin.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "❌ Invalid credentials" });
+      return res.status(400).json({ message: "❌ Invalid email" });
     }
 
     // Verify password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "❌ Invalid credentials" });
+      return res.status(400).json({ message: "❌ Invalid password" });
     }
 
     // Create JWT token
@@ -93,7 +94,8 @@ router.post('/login', async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        status: user.status
+        status: user.status,
+        role: user.role
       }
     });
 

@@ -1,6 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import axios from "axios";
 import "./generateOutpass.css";
-import SignatureCanvas from 'react-signature-canvas';
 
 const GenerateOutpass = () => {
   const [outpassDetails, setOutpassDetails] = useState({
@@ -11,34 +11,56 @@ const GenerateOutpass = () => {
     checkIn: "",
     checkOut: ""
   });
-
   const [generated, setGenerated] = useState(false);
-  const sigCanvas = useRef({});
-  const [signature, setSignature] = useState(null);
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/user/me", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setOutpassDetails(prev => ({
+          ...prev,
+          name: response.data.name || "",
+          year: response.data.year || "",
+          roomNumber: response.data.roomNumber || ""
+        }));
+      } catch (error) {
+        console.error("❌ Error fetching user profile:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [token]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setOutpassDetails((prev) => ({ ...prev, [name]: value }));
+    setOutpassDetails(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSignature(sigCanvas.current.toDataURL());
-    setGenerated(true);
-  };
 
-  const handleClear = () => {
-    sigCanvas.current.clear();
-    setSignature(null);
+    try {
+      await axios.post(
+        "http://localhost:5000/api/outpass",
+        { ...outpassDetails },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setGenerated(true);
+    } catch (error) {
+      console.error("Error submitting outpass:", error);
+      alert("Failed to generate outpass. Please try again.");
+    }
   };
-
-  const currentDate = new Date();
-  const formattedDate = currentDate.toLocaleDateString();
-  const formattedTime = currentDate.toLocaleTimeString();
 
   const handlePrint = () => {
     window.print();
   };
+
+  const currentDate = new Date().toLocaleDateString();
+  const currentTime = new Date().toLocaleTimeString();
 
   return (
     <div className="container generate-outpass mt-5">
@@ -111,11 +133,6 @@ const GenerateOutpass = () => {
               required
             />
           </div>
-          <div className="form-group mb-3">
-            <label>Student Digital Signature:</label>
-            <SignatureCanvas ref={sigCanvas} penColor="black" canvasProps={{width: 300, height: 100, className: "signature-canvas"}} />
-            <button type="button" className="btn btn-secondary mt-2" onClick={handleClear}>Clear Signature</button>
-          </div>
           <button type="submit" className="btn btn-primary w-100">
             Generate Outpass
           </button>
@@ -124,23 +141,24 @@ const GenerateOutpass = () => {
         <div className="outpass-receipt">
           <div className="receipt-header text-center mb-4">
             <h3>Hostel Outpass</h3>
-            <p>Issued on {formattedDate} at {formattedTime}</p>
+            <p>Issued on {currentDate} at {currentTime}</p>
           </div>
           <div className="receipt-body">
-            <p>I, <strong>{outpassDetails.name}</strong>, a student of <strong>{outpassDetails.year}</strong> year, residing in room <strong>{outpassDetails.roomNumber}</strong>, formally request permission to leave the hostel premises for a specific period.</p>
+            <p>
+              I, <strong>{outpassDetails.name}</strong>, a student of{" "}
+              <strong>{outpassDetails.year}</strong> year, residing in room{" "}
+              <strong>{outpassDetails.roomNumber}</strong>, formally request
+              permission to leave the hostel premises.
+            </p>
             <p>The purpose of my request is as follows:</p>
-            <p><strong>Reason:</strong> {outpassDetails.reason}</p>
-            <p>I intend to leave the hostel on <strong>{outpassDetails.checkOut}</strong> and will return on <strong>{outpassDetails.checkIn}</strong>. I assure compliance with all hostel regulations and will report back as scheduled.</p>
-          </div>
-          <div className="signatures mt-4">
-            <div>
-              {signature && <img src={signature} alt="Student Signature" className="signature-preview" />}
-              <p>Student Signature</p>
-            </div>
-            <div>
-              <p>________________________</p>
-              <p>Hostel In-Charge Signature</p>
-            </div>
+            <p>
+              <strong>Reason:</strong> {outpassDetails.reason}
+            </p>
+            <p>
+              I intend to leave on <strong>{outpassDetails.checkOut}</strong> and
+              return on <strong>{outpassDetails.checkIn}</strong>. I assure compliance with
+              all hostel regulations and will report back as scheduled.
+            </p>
           </div>
           <div className="actions mt-4">
             <button className="btn btn-primary w-100" onClick={handlePrint}>
