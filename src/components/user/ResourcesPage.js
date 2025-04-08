@@ -1,5 +1,4 @@
 import React from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
 // import Navbar from "../shared/Navbar";
 import "./ResourcesPage.css"; // CSS file for custom styling
 import { useNavigate } from "react-router-dom"; 

@@ -1,7 +1,6 @@
 import React from "react";
 // import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
 import "./Homepage.css";
 import "./AboutPage.css";
 

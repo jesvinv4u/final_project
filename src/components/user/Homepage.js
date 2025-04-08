@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
 import "./Homepage.css";
-import "bootstrap/dist/css/bootstrap.min.css";
 
 const HomePage = () => {
   const navigate = useNavigate();

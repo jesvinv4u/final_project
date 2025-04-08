@@ -3,7 +3,6 @@ import axios from "axios";
 import { Card, CardContent } from "../ui/card.js";
 import { Link, useNavigate } from "react-router-dom";
 import { FaUserCircle } from "react-icons/fa";
-import "bootstrap/dist/css/bootstrap.min.css"; // ✅ Import Bootstrap for navbar styling
 import "./Profile.css";
 
 const ProfileView = () => {
