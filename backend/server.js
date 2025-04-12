@@ -9,6 +9,8 @@ import userRoutes from './routes/user.js';
 import adminRoutes from './routes/admin.js';
 import uploadRoutes from './routes/upload.js';
 import roomRequestRoutes from "./routes/roomRequestRoutes.js";
+import bookRoomRoutes from "./routes/bookroom.js";
+
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -70,6 +72,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use("/api/room-requests", roomRequestRoutes);
+app.use('/api/room/book', bookRoomRoutes);
 
 
 // ✅ Root Route

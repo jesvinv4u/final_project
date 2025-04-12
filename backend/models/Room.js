@@ -6,6 +6,8 @@ const RoomSchema = new mongoose.Schema(
     roomNumber: { type: Number, required: true },
     availability: { type: Number, default: 2 },
     bookedBy: { type: String, default: null }, // Changed from ObjectId to String
+    department: { type: String, default: null },
+    year: { type: Number, default: null },
   },
   { collection: "rooms" }
 );

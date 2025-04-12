@@ -14,19 +14,6 @@ const Profile = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
-  const [uploadedFiles, setUploadedFiles] = useState([]);
-
-  useEffect(() => {
-    const fetchFiles = async () => {
-      try {
-        const response = await axios.get("http://localhost:5000/upload");
-        setUploadedFiles(response.data);
-      } catch (error) {
-        console.error("Error fetching files:", error);
-      }
-    };
-    fetchFiles();
-  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,10 +34,12 @@ const Profile = () => {
       formDataToSend.append("documents", file);
     });
     try {
-      const profileResponse = await axios.put(
+      await axios.put(
         `http://localhost:5000/api/user/${userId}/complete-profile`,
         formDataToSend,
-        { headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` } }
+        {
+          headers: { Authorization: `Bearer ${token}` } // Let Axios set the Content-Type with proper boundary
+        }
       );
       alert("✅ Profile saved successfully!");
       localStorage.setItem("status", "old");
@@ -89,6 +78,7 @@ const Profile = () => {
               <Input label="Student ID" name="studentID" onChange={handleChange} required />
               <Input label="Course Name" name="course" onChange={handleChange} required />
               <Input label="Department" name="department" onChange={handleChange} required />
+              <Input label="Year of Study" name="year" onChange={handleChange} required />
             </div>
           </CardContent>
 

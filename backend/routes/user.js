@@ -35,13 +35,21 @@ router.put('/:id/complete-profile', authMiddleware, async (req, res) => {
     console.log("PUT /complete-profile called with id:", req.params.id);
     console.log("Request body:", req.body);
 
-    // Prevent the client from updating "status" by forcing it to "old"
-    const { status, ...updatedFields } = req.body;
+    // Build the updatedFields object including all fields
+    const updatedFields = { ...req.body, status: "old", profileCompleted: true };
 
-    // Attempt to update the user document
+    // Convert fields if necessary (e.g., year should be a number, dob to a Date)
+    if (updatedFields.year) {
+      updatedFields.year = Number(updatedFields.year);
+    }
+    if (updatedFields.dob) {
+      updatedFields.dob = new Date(updatedFields.dob);
+    }
+
+    // Update the user document with all fields from the request
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      { ...updatedFields, status: "old", profileCompleted: true },
+      updatedFields,
       { new: true, runValidators: true }
     ).select('-password');
 

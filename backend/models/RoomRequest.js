@@ -9,11 +9,11 @@ const Room_RequestSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  floor: {
-    type: Number,
+  department: {
+    type: String,
     required: true,
   },
-  roomNumber: {
+  year: {
     type: Number,
     required: true,
   },
@@ -26,8 +26,7 @@ const Room_RequestSchema = new mongoose.Schema({
     enum: ["Pending", "Approved", "Rejected"],
     default: "Pending",
   },
-},{ collection: 'Room_Requests' });
+}, { collection: 'Room_Requests' });
 
 const RoomReq = mongoose.model('Room_Requests', Room_RequestSchema);
-
 export default RoomReq;
