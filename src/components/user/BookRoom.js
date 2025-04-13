@@ -5,9 +5,10 @@ import "./bookRoom.css";
 const BookRoom = () => {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const token = localStorage.getItem("token");
   const [roomDetails, setRoomDetails] = useState(null);
+  const token = localStorage.getItem("token");
 
+  // Fetch user profile
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
@@ -15,18 +16,40 @@ const BookRoom = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUserProfile(response.data);
-        setLoading(false);
       } catch (error) {
         console.error("❌ Error fetching user profile:", error);
+      } finally {
         setLoading(false);
       }
     };
 
+    const fetchUserBooking = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/room/book/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+    
+        // If booking exists
+        if (response.data && response.data.room) {
+          setRoomDetails(response.data.room);
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          console.log("✅ No existing booking for user.");
+          setRoomDetails(null); // Explicitly set null
+        } else {
+          console.error("❌ Error fetching booking:", error);
+        }
+      }
+    };
+    
+
     fetchUserProfile();
+    fetchUserBooking();
   }, [token]);
-  console.log("Passes")
 
   const handleBooking = async () => {
+    // If roomDetails exists from fetchUserBooking, it means the user has an active booking.
     if (roomDetails) {
       console.log("Existing booking:", roomDetails);
       alert("You have already booked a room.");
@@ -39,6 +62,7 @@ const BookRoom = () => {
     }
 
     try {
+      
       const response = await axios.post(
         "http://localhost:5000/api/room/book/",
         {},
@@ -48,7 +72,11 @@ const BookRoom = () => {
       setRoomDetails(response.data.room);
     } catch (error) {
       console.error("Error booking room:", error);
-      alert("Error booking room. Please try again.");
+      if (error.response && error.response.data && error.response.data.message) {
+        alert(error.response.data.message);
+      } else {
+        alert("Error booking room. Please try again.");
+      }
     }
   };
 
@@ -99,7 +127,7 @@ const BookRoom = () => {
             <strong>Floor:</strong> {roomDetails.floor}
           </p>
           <p>
-            <strong>Status: Successful</strong> 
+            <strong>Status: Successful</strong>
           </p>
         </div>
       )}
