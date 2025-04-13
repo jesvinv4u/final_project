@@ -75,7 +75,6 @@ router.get("/", authMiddleware, async (req, res) => {
   try {
     const { id: userId } = req.user;
     const userIdStr = String(userId);
-    console.log("🔍 GET route user ID:", userIdStr);
 
     const existingBooking = await Room.findOne({ bookedBy: userIdStr });
     if (existingBooking) {
