@@ -10,6 +10,8 @@ import adminRoutes from './routes/admin.js';
 import uploadRoutes from './routes/upload.js';
 import roomRequestRoutes from "./routes/roomRequestRoutes.js";
 import bookRoomRoutes from "./routes/bookroom.js";
+import vacateRoomRoutes from "./routes/vacateRoom.js";
+import adminVacateRoutes from "./routes/adminvacate.js";
 
 
 
@@ -73,6 +75,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use("/api/room-requests", roomRequestRoutes);
 app.use('/api/room/book', bookRoomRoutes);
+app.use("/api/room/vacate", vacateRoomRoutes);
+app.use("/api/admin/vacate", adminVacateRoutes);
 
 
 // ✅ Root Route
