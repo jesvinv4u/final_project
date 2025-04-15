@@ -35,20 +35,23 @@ router.put("/:ticketId", adminAuthMiddleware, async (req, res) => {
     
     // If approved, update the Room document to vacate the room for the specific occupant
     if (status === "approved") {
-      // Update the room by clearing bookedBy, department and year and incrementing availability
+      // Update the room by removing only the vacating user from the bookedBy, department, and year arrays,
+      // and incrementing the availability by 1.
       const room = await Room.findOneAndUpdate(
         { bookedBy: ticket.userId },
         {
-          bookedBy: null,
-          department: null,
-          year: null,
+          $pull: {
+            bookedBy: ticket.userId,
+            department: ticket.department,  // Ensure ticket.department exists or adjust accordingly.
+            year: ticket.year               // Ensure ticket.year exists or adjust accordingly.
+          },
           $inc: { availability: 1 }
         },
         { new: true }
       );
       
       return res.json({
-        message: "✅ Vacate request approved, room vacated and booking details cleared!",
+        message: "✅ Vacate request approved, occupant removed and room updated!",
         ticket,
         room,
       });
