@@ -1,71 +1,201 @@
-# Getting Started with Create React App
+# Hostel Hub: Smart Allocation and Response Architecture for Student Hostels
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is a Node.js-based backend for managing room bookings and vacate requests. It provides functionality for users to register, book rooms, update their profiles, and for administrators to approve or reject vacate requests.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- **User Authentication**  
+  - User registration and login using JWT authentication.
+  - Profile creation and updates including complete details and document uploads.
 
-### `npm start`
+- **Room Booking**  
+  - Users can book a room (single-occupant system).
+  - The system tracks room availability and booking details.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **Vacate Requests**  
+  - Users can submit a vacate request.
+  - Admin panel to review, approve, or reject vacate requests.
+  - On approval, room booking details (bookedBy, department, year) are cleared and room availability is updated.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Technologies Used
 
-### `npm test`
+- Node.js & Express
+- MongoDB & Mongoose
+- JSON Web Tokens (JWT)
+- Bcrypt for password hashing
+- Multer (for file upload if needed)
+- dotenv for environment configuration
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Project Structure
 
-### `npm run build`
+```
+project/
+│
+├── backend/
+│   ├── models/
+│   │   ├── Room.js              # Room schema and model
+│   │   ├── user.js              # User schema and model
+│   │   ├── vacateticket.js      # Vacate Ticket schema and model
+│   │   └── admin.js             # Admin schema and model (if separate)
+│   │
+│   ├── routes/
+│   │   ├── auth.js              # Authentication (register and login) routes
+│   │   ├── bookroom.js          # Room booking routes
+│   │   ├── adminvacate.js       # Admin vacate request processing routes
+│   │   └── user.js              # User routes for profile and other functionalities
+│   │
+│   ├── middleware/
+│   │   ├── authMiddleware.js    # Authentication middleware to secure routes
+│   │   └── adminAuthMiddleware.js  # Admin-specific authentication middleware
+│   │
+│   └── server.js                # Main server file to start Express
+│
+└── README.md                    # This file
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Installation
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. **Clone the repository**
+   ```bash
+   git clone https://your-repository-url.git
+   cd project
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-### `npm run eject`
+3. **Setup Environment Variables**
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+   Create a `.env` file in the backend directory with at least the following variables:
+   ```
+   PORT=5000
+   MONGO_URI=your_mongodb_connection_string
+   JWT_SECRET=your_secret_key
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+4. **Start the server**
+   ```bash
+   npm start
+   ```
+   The server should run on the port specified (default: 5000).
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## API Endpoints
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Authentication
 
-## Learn More
+- **GET** `/api/auth/`  
+  *Checks if the Auth API is working.*
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- **POST** `/api/auth/register`  
+  *Body (JSON)*:
+  ```json
+  {
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "password": "your_secure_password"
+  }
+  ```
+  *Registers a new user.*
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- **POST** `/api/auth/login`  
+  *Body (JSON)*:
+  ```json
+  {
+    "email": "john.doe@example.com",
+    "password": "your_secure_password"
+  }
+  ```
+  *Logs in a user and returns a JWT token.*
 
-### Code Splitting
+### Room Booking
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- **POST** `/api/room/book`  
+  *Headers*: `Authorization: Bearer YOUR_TOKEN_HERE`  
+  *Books a room for the user. Returns booking details.*
 
-### Analyzing the Bundle Size
+- **GET** `/api/room/book`  
+  *Headers*: `Authorization: Bearer YOUR_TOKEN_HERE`  
+  *Returns the room booked by the user (if any).*
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### Vacate Request Management (Admin)
 
-### Making a Progressive Web App
+- **GET** `/api/admin/vacate`  
+  *Headers*: `Authorization: Bearer ADMIN_TOKEN_HERE`  
+  *Returns all vacate requests for admin review.*
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+- **PUT** `/api/admin/vacate/:ticketId`  
+  *Headers*: `Authorization: Bearer ADMIN_TOKEN_HERE`  
+  *Body (JSON)*:
+  ```json
+  {
+    "status": "approved"  // or "rejected"
+  }
+  ```
+  *Updates the vacate ticket status. If approved, clears the room booking details and updates availability.*
 
-### Advanced Configuration
+### User Profile
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- **GET** `/api/user/me`  
+  *Headers*: `Authorization: Bearer YOUR_TOKEN_HERE`  
+  *Returns the authenticated user's profile (excludes password).*
 
-### Deployment
+- **PUT** `/api/user/:userId/complete-profile`  
+  *Headers*: `Authorization: Bearer YOUR_TOKEN_HERE`  
+  *Body*: multipart/form-data with fields (name, dob, gender, contactNumber, etc.) and optionally files under `documents`.  
+  *Updates the user's complete profile.*
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## Postman Test Examples
 
-### `npm run build` fails to minify
+For testing endpoints by Postman, refer to the [Postman documentation](https://learning.postman.com/docs/getting-started/introduction/).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-# Hostel-Management-System-using-React
+### Example: User Registration Test
+
+- **Method:** POST  
+- **URL:** `http://localhost:5000/api/auth/register`  
+- **Headers:**
+  - `Content-Type: application/json`
+- **Body (raw JSON):**
+  ```json
+  {
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "password": "your_secure_password"
+  }
+  ```
+
+### Example: Complete Profile Update Test
+
+- **Method:** PUT  
+- **URL:** `http://localhost:5000/api/user/<userId>/complete-profile`  
+  *(Replace `<userId>` with the actual user id)*  
+- **Headers:**
+  - `Authorization: Bearer YOUR_TOKEN_HERE`
+- **Body (form-data):**
+  - Key: `name` – Value: `John Doe`
+  - Key: `dob` – Value: `1990-01-01`
+  - Key: `gender` – Value: `male`
+  - Key: `nationality` – Value: `American`
+  - Key: `email` – Value: `john.doe@example.com`
+  - Key: `contactNumber` – Value: `1234567890`
+  - Key: `guardianName` – Value: `Jane Doe`
+  - Key: `guardianContact` – Value: `0987654321`
+  - Key: `permAddress` – Value: `123 Main St, Anytown, USA`
+  - Key: `studentID` – Value: `S123456`
+  - Key: `course` – Value: `Computer Science`
+  - Key: `department` – Value: `CSI`
+  - Key: `year` – Value: `2`
+  - Key: `bloodGroup` – Value: `O+`
+  - Key: `medical` – Value: `None`
+  - Key: `emergencyContact` – Value: `1122334455`
+  - Key: `agreement` – Value: `true`
+  - *For key `documents`, change the type to File and attach file(s).*
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for more information.
