@@ -1,4 +1,4 @@
-# Room Booking and Vacate Management System
+# Hostel Hub: Smart Allocation and Response Architecture for Student Hostels
 
 This project is a Node.js-based backend for managing room bookings and vacate requests. It provides functionality for users to register, book rooms, update their profiles, and for administrators to approve or reject vacate requests.
 
