@@ -4,70 +4,70 @@ import axios from "axios";
 import "./RoomAllocation.css";
 
 const RoomAllocation = () => {
-  const [bookings, setBookings] = useState([]);
+  const [changeRequests, setChangeRequests] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
   const [selectedStudent, setSelectedStudent] = useState(null);
 
+  // Fetch room change requests from the new API endpoint
   useEffect(() => {
-    const fetchBookings = async () => {
+    const fetchChangeRequests = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/room-requests/requests");
-        setBookings(response.data);
+        const response = await axios.get("http://localhost:5000/api/changeroomticket");
+        setChangeRequests(response.data);
       } catch (error) {
-        console.error("Error fetching booking requests:", error);
+        console.error("Error fetching room change requests:", error);
       }
     };
-    fetchBookings();
+    fetchChangeRequests();
   }, []);
 
-  const handleSort = (key) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
-
-    const sortedBookings = [...bookings].sort((a, b) => {
-      if (key === "roomNumber") {
-        return direction === "asc" ? a[key] - b[key] : b[key] - a[key];
-      }
-      return direction === "asc"
-        ? a[key].localeCompare(b[key])
-        : b[key].localeCompare(a[key]);
-    });
-    setBookings(sortedBookings);
-  };
-
-  const handleApprove = async (id) => {
+  // Approve room change request.
+  // Also auto-reject competing pending requests for the same desired room.
+  const handleApproveChangeRequest = async (id, desiredRoom) => {
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/room-requests/update-request/${id}`,
+        `http://localhost:5000/api/changeroomticket/update/${id}`,
         { status: "Approved" }
       );
-      setBookings(
-        bookings.map((booking) => (booking._id === id ? response.data.request : booking))
+      setChangeRequests((prev) =>
+        prev.map((req) => (req._id === id ? response.data : req))
       );
-      alert("Request approved successfully!");
+      // Automatically reject competing requests
+      const competingRequests = changeRequests.filter(
+        (req) =>
+          req._id !== id &&
+          req.desiredRoom === desiredRoom &&
+          req.status === "Pending"
+      );
+      for (const req of competingRequests) {
+        const res = await axios.put(
+          `http://localhost:5000/api/changeroomticket/update/${req._id}`,
+          { status: "Rejected" }
+        );
+        setChangeRequests((prev) =>
+          prev.map((r) => (r._id === req._id ? res.data : r))
+        );
+      }
+      alert("Room change request approved. Other conflicting requests were auto-rejected.");
     } catch (error) {
-      console.error("Error approving request:", error);
-      alert("Error approving request. Please try again.");
+      console.error("Error approving room change request:", error);
+      alert("Error approving room change request. Please try again.");
     }
   };
 
-  const handleReject = async (id) => {
+  const handleRejectChangeRequest = async (id) => {
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/room-requests/update-request/${id}`,
+        `http://localhost:5000/api/changeroomticket/update/${id}`,
         { status: "Rejected" }
       );
-      setBookings(
-        bookings.map((booking) => (booking._id === id ? response.data.request : booking))
+      setChangeRequests((prev) =>
+        prev.map((req) => (req._id === id ? response.data : req))
       );
-      alert("Request rejected successfully!");
+      alert("Room change request rejected successfully!");
     } catch (error) {
-      console.error("Error rejecting request:", error);
-      alert("Error rejecting request. Please try again.");
+      console.error("Error rejecting room change request:", error);
+      alert("Error rejecting room change request. Please try again.");
     }
   };
 
@@ -81,80 +81,69 @@ const RoomAllocation = () => {
             </Link>
           </div>
           <div className="nav-links">
-            <Link to="/room-allocation" className="nav-link active">
-              Room Allocation
-            </Link>
-            <Link to="/outpass-data" className="nav-link">
-              Outpass Data
-            </Link>
-            <Link to="/complaints-page" className="nav-link">
-              Complaints
-            </Link>
-            <Link to="/vacate-request" className="nav-link">
-              Vacate Request
+            {/* You can add other admin links here */}
+            <Link to="/changeroom" className="nav-link active">
+              Room Change Requests
             </Link>
           </div>
         </div>
       </nav>
 
       <div className="room-allocation-content">
-        <h1>Room Allocation Management</h1>
+        <h1>Room Change Requests</h1>
         <div className="search-container">
           <input
             type="text"
-            placeholder="Search bookings..."
+            placeholder="Search requests..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-
-        <div className="bookings-table-container">
+        <div className="change-requests-table-container">
           <table className="bookings-table">
             <thead>
               <tr>
-                <th onClick={() => handleSort("name")}>
-                  Name {sortConfig.key === "name" && (sortConfig.direction === "asc" ? "↑" : "↓")}
-                </th>
-                <th onClick={() => handleSort("email")}>
-                  Email {sortConfig.key === "email" && (sortConfig.direction === "asc" ? "↑" : "↓")}
-                </th>
-                <th onClick={() => handleSort("roomNumber")}>
-                  Room {sortConfig.key === "roomNumber" && (sortConfig.direction === "asc" ? "↑" : "↓")}
-                </th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Current Room</th>
+                <th>Desired Room</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {bookings
-                .filter((booking) =>
-                  booking.name.toLowerCase().includes(searchTerm.toLowerCase())
+              {changeRequests
+                .filter((req) =>
+                  req.name.toLowerCase().includes(searchTerm.toLowerCase())
                 )
-                .map((booking) => (
-                  <tr key={booking._id}>
+                .map((req) => (
+                  <tr key={req._id}>
+                    <td>{req.name}</td>
+                    <td>{req.email}</td>
+                    <td>{req.currentRoom}</td>
+                    <td>{req.desiredRoom}</td>
                     <td>
-                      <button
-                        className="student-name-btn"
-                        onClick={() => setSelectedStudent(booking)}
-                      >
-                        {booking.name}
-                      </button>
-                    </td>
-                    <td>{booking.email}</td>
-                    <td>{booking.roomNumber}</td>
-                    <td>
-                      {booking.status === "Pending" ? (
+                      {req.status === "Pending" ? (
                         <>
                           <button
-                            onClick={() => handleApprove(booking._id)}
+                            onClick={() =>
+                              handleApproveChangeRequest(req._id, req.desiredRoom)
+                            }
                             className="approve-btn"
-                            style={{ marginRight: "10px", backgroundColor: "green", color: "white" }}
+                            style={{
+                              marginRight: "10px",
+                              backgroundColor: "green",
+                              color: "white",
+                            }}
                           >
                             Approve
                           </button>
                           <button
-                            onClick={() => handleReject(booking._id)}
+                            onClick={() => handleRejectChangeRequest(req._id)}
                             className="reject-btn"
-                            style={{ backgroundColor: "red", color: "white" }}
+                            style={{
+                              backgroundColor: "red",
+                              color: "white",
+                            }}
                           >
                             Reject
                           </button>
@@ -162,15 +151,15 @@ const RoomAllocation = () => {
                       ) : (
                         <button
                           className={
-                            booking.status === "Approved" ? "approved-btn" : "rejected-btn"
+                            req.status === "Approved" ? "approved-btn" : "rejected-btn"
                           }
                           style={{
-                            backgroundColor: booking.status === "Approved" ? "green" : "red",
+                            backgroundColor: req.status === "Approved" ? "green" : "red",
                             color: "white",
                           }}
                           disabled
                         >
-                          {booking.status}
+                          {req.status}
                         </button>
                       )}
                     </td>
@@ -179,27 +168,6 @@ const RoomAllocation = () => {
             </tbody>
           </table>
         </div>
-
-        {selectedStudent && (
-          <div className="student-details-modal">
-            <h2>Student Details</h2>
-            <p>
-              <strong>Name:</strong> {selectedStudent.name}
-            </p>
-            <p>
-              <strong>Email:</strong> {selectedStudent.email}
-            </p>
-            <p>
-              <strong>Room Number:</strong> {selectedStudent.roomNumber}
-            </p>
-            <p>
-              <strong>Check-in Date:</strong> {selectedStudent.checkInDate}
-            </p>
-            <button onClick={() => setSelectedStudent(null)} className="close-modal">
-              Close
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

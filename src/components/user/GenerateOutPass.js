@@ -1,38 +1,71 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "./generateOutpass.css";
 
 const GenerateOutpass = () => {
   const [outpassDetails, setOutpassDetails] = useState({
     name: "",
     year: "",
-    roomNumber: "",
+    roomNumber: "",  // to be fetched from booked room details
     reason: "",
     checkIn: "",
     checkOut: ""
   });
   const [generated, setGenerated] = useState(false);
-  const token = localStorage.getItem("token");
+  const [userProfile, setUserProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  const token = localStorage.getItem("token");
+  const navigate = useNavigate();
+
+  // Fetch user profile and update state (with loading state)
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
         const response = await axios.get("http://localhost:5000/api/user/me", {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
+        setUserProfile(response.data);
+        // Also set name and year from user profile
         setOutpassDetails(prev => ({
           ...prev,
           name: response.data.name || "",
-          year: response.data.year || "",
-          roomNumber: response.data.roomNumber || ""
+          year: response.data.year || ""
         }));
+        setLoading(false);
       } catch (error) {
         console.error("❌ Error fetching user profile:", error);
+        setLoading(false);
+      }
+    };
+    fetchUserProfile();
+  }, [token]);
+
+  
+
+  // Fetch booked room details to set roomNumber from the Room schema
+  useEffect(() => {
+    const fetchBookedRoom = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/room/available", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.data && response.data.room) {
+          setOutpassDetails(prev => ({
+            ...prev,
+            roomNumber: response.data.room.roomNumber || ""
+          }));
+        }
+      } catch (error) {
+        alert("You do not have a booked room. Redirecting to homepage.");
+        navigate("/home");
       }
     };
 
-    fetchUserProfile();
+    fetchBookedRoom();
   }, [token]);
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -49,6 +82,8 @@ const GenerateOutpass = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setGenerated(true);
+      // After successful generation, navigate to the outpasses page
+      navigate("/outpasses");
     } catch (error) {
       console.error("Error submitting outpass:", error);
       alert("Failed to generate outpass. Please try again.");
@@ -62,44 +97,16 @@ const GenerateOutpass = () => {
   const currentDate = new Date().toLocaleDateString();
   const currentTime = new Date().toLocaleTimeString();
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="container generate-outpass mt-5">
       <h2 className="text-center mb-4">Generate Outpass</h2>
       {!generated ? (
         <form onSubmit={handleSubmit} className="outpass-form">
-          <div className="form-group mb-3">
-            <label>Name of Student:</label>
-            <input
-              type="text"
-              name="name"
-              className="form-control"
-              value={outpassDetails.name}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="form-group mb-3">
-            <label>Year of Study:</label>
-            <input
-              type="text"
-              name="year"
-              className="form-control"
-              value={outpassDetails.year}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div className="form-group mb-3">
-            <label>Room Number:</label>
-            <input
-              type="text"
-              name="roomNumber"
-              className="form-control"
-              value={outpassDetails.roomNumber}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
+          {/* The Name, Year, and Room Number are set via profile & booked room details */}
           <div className="form-group mb-3">
             <label>Reason for Going Out:</label>
             <textarea
@@ -141,7 +148,9 @@ const GenerateOutpass = () => {
         <div className="outpass-receipt">
           <div className="receipt-header text-center mb-4">
             <h3>Hostel Outpass</h3>
-            <p>Issued on {currentDate} at {currentTime}</p>
+            <p>
+              Issued on {currentDate} at {currentTime}
+            </p>
           </div>
           <div className="receipt-body">
             <p>
@@ -156,8 +165,8 @@ const GenerateOutpass = () => {
             </p>
             <p>
               I intend to leave on <strong>{outpassDetails.checkOut}</strong> and
-              return on <strong>{outpassDetails.checkIn}</strong>. I assure compliance with
-              all hostel regulations and will report back as scheduled.
+              return on <strong>{outpassDetails.checkIn}</strong>. I assure compliance
+              with all hostel regulations and will report back as scheduled.
             </p>
           </div>
           <div className="actions mt-4">
@@ -166,9 +175,9 @@ const GenerateOutpass = () => {
             </button>
             <button
               className="btn btn-secondary w-100 mt-3"
-              onClick={() => setGenerated(false)}
+              onClick={() => { setGenerated(false); navigate("/outpasses") }}
             >
-              Generate Another Outpass
+              View Outpasses
             </button>
           </div>
         </div>

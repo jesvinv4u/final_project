@@ -12,8 +12,9 @@ import roomRequestRoutes from "./routes/roomRequestRoutes.js";
 import bookRoomRoutes from "./routes/bookroom.js";
 import vacateRoomRoutes from "./routes/vacateRoom.js";
 import adminVacateRoutes from "./routes/adminvacate.js";
-
-
+import complaintsRoutes from "./routes/complaints.js";
+import ticketRoutes from "./routes/changeroomticket.js";
+import roomAvailableRoutes from "./routes/roomAvailable.js";  // NEW: Import available rooms router
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -73,10 +74,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
-app.use("/api/room-requests", roomRequestRoutes);
+app.use('/api/room-requests', roomRequestRoutes);
 app.use('/api/room/book', bookRoomRoutes);
+app.use('/api/room/available', roomAvailableRoutes); // NEW: Available rooms endpoint
 app.use("/api/room/vacate", vacateRoomRoutes);
 app.use("/api/admin/vacate", adminVacateRoutes);
+app.use("/api/complaints", complaintsRoutes);
+app.use("/api/ticket", ticketRoutes);
 
 
 // ✅ Root Route

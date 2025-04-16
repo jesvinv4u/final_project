@@ -1,0 +1,15 @@
+.user-complaints-container {
+  padding: 20px;
+}
+.complaint-card {
+  border: 1px solid #ccc;
+  margin: 10px 0;
+  padding: 10px;
+}
+.resolve-btn {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
