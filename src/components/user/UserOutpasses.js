@@ -17,7 +17,6 @@ const UserOutpasses = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUserId(res.data._id); // Assuming the user id field is _id
-        setUserEmail(res.data.email);
       } catch (error) {
         console.error("Error fetching user profile:", error);
       }
