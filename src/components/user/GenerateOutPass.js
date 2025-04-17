@@ -31,7 +31,7 @@ const GenerateOutpass = () => {
         setOutpassDetails(prev => ({
           ...prev,
           name: response.data.name || "",
-          year: response.data.year || ""
+          year: String(response.data.year) || ""
         }));
         setLoading(false);
       } catch (error) {
@@ -48,13 +48,13 @@ const GenerateOutpass = () => {
   useEffect(() => {
     const fetchBookedRoom = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/room/available", {
+        const response = await axios.get("http://localhost:5000/api/room/book", {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (response.data && response.data.room) {
           setOutpassDetails(prev => ({
             ...prev,
-            roomNumber: response.data.room.roomNumber || ""
+            roomNumber: String(response.data.room.roomNumber) || ""
           }));
         }
       } catch (error) {
@@ -75,6 +75,9 @@ const GenerateOutpass = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    console.log(outpassDetails.name, outpassDetails.year, outpassDetails.roomNumber, outpassDetails.reason, outpassDetails.checkIn, outpassDetails.checkOut);
+
+
     try {
       await axios.post(
         "http://localhost:5000/api/outpass",
@@ -83,7 +86,7 @@ const GenerateOutpass = () => {
       );
       setGenerated(true);
       // After successful generation, navigate to the outpasses page
-      navigate("/outpasses");
+      navigate("/outpass");
     } catch (error) {
       console.error("Error submitting outpass:", error);
       alert("Failed to generate outpass. Please try again.");
@@ -143,6 +146,12 @@ const GenerateOutpass = () => {
           <button type="submit" className="btn btn-primary w-100">
             Generate Outpass
           </button>
+          <button
+              className="btn btn-secondary w-100 mt-3"
+              onClick={() => { setGenerated(false); navigate("/user-outpasses") }}
+            >
+              View Outpasses
+            </button>
         </form>
       ) : (
         <div className="outpass-receipt">
@@ -175,7 +184,7 @@ const GenerateOutpass = () => {
             </button>
             <button
               className="btn btn-secondary w-100 mt-3"
-              onClick={() => { setGenerated(false); navigate("/outpasses") }}
+              onClick={() => { setGenerated(false); navigate("/user-outpasses") }}
             >
               View Outpasses
             </button>

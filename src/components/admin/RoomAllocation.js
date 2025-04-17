@@ -12,7 +12,7 @@ const RoomAllocation = () => {
   useEffect(() => {
     const fetchChangeRequests = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/api/changeroomticket");
+        const response = await axios.get("http://localhost:5000/api/ticket");
         setChangeRequests(response.data);
       } catch (error) {
         console.error("Error fetching room change requests:", error);
@@ -26,7 +26,7 @@ const RoomAllocation = () => {
   const handleApproveChangeRequest = async (id, desiredRoom) => {
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/changeroomticket/update/${id}`,
+        `http://localhost:5000/api/ticket/update/${id}`,
         { status: "Approved" }
       );
       setChangeRequests((prev) =>
@@ -41,7 +41,7 @@ const RoomAllocation = () => {
       );
       for (const req of competingRequests) {
         const res = await axios.put(
-          `http://localhost:5000/api/changeroomticket/update/${req._id}`,
+          `http://localhost:5000/api/ticket/update/${req._id}`,
           { status: "Rejected" }
         );
         setChangeRequests((prev) =>
@@ -58,7 +58,7 @@ const RoomAllocation = () => {
   const handleRejectChangeRequest = async (id) => {
     try {
       const response = await axios.put(
-        `http://localhost:5000/api/changeroomticket/update/${id}`,
+        `http://localhost:5000/api/ticket/update/${id}`,
         { status: "Rejected" }
       );
       setChangeRequests((prev) =>

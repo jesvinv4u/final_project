@@ -6,10 +6,10 @@ const router = express.Router();
 // POST route to submit a complaint
 router.post("/", async (req, res) => {
   try {
-    const { complaintType, problem, name, email } = req.body;
+    const { complaintType, problem, name,roomNumber, email } = req.body;
 
     // Validate required fields
-    if (!complaintType || !problem || !name || !email) {
+    if (!complaintType || !problem || !name || !roomNumber || !email) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
@@ -18,6 +18,7 @@ router.post("/", async (req, res) => {
       complaintType,
       problem,
       name,
+      roomNumber,
       email,
     });
 

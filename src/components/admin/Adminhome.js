@@ -24,9 +24,6 @@ const AdminHome = () => {
             <Link to="/room-allocation" className="nav-link">
               Room Allocation
             </Link>
-            <Link to="" className="nav-link">
-              Change Room
-            </Link>
             <Link to="/outpass-data" className="nav-link">
               Outpass Data
             </Link>

@@ -52,7 +52,7 @@ const BookRoom = () => {
     // If roomDetails exists from fetchUserBooking, it means the user has an active booking.
     if (roomDetails) {
       console.log("Existing booking:", roomDetails);
-      alert("You have already booked a room.");
+      alert("You have already  a room.");
       return;
     }
 

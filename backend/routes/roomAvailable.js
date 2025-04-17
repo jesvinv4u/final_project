@@ -1,4 +1,4 @@
-///import express from "express";
+import express from "express";
 import Room from "../models/Room.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 

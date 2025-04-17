@@ -15,6 +15,8 @@ import adminVacateRoutes from "./routes/adminvacate.js";
 import complaintsRoutes from "./routes/complaints.js";
 import ticketRoutes from "./routes/changeroomticket.js";
 import roomAvailableRoutes from "./routes/roomAvailable.js";  // NEW: Import available rooms router
+import outpassRoutes from "./routes/outpass.js";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -81,6 +83,9 @@ app.use("/api/room/vacate", vacateRoomRoutes);
 app.use("/api/admin/vacate", adminVacateRoutes);
 app.use("/api/complaints", complaintsRoutes);
 app.use("/api/ticket", ticketRoutes);
+app.use("/api/outpass", outpassRoutes);
+
+
 
 
 // ✅ Root Route

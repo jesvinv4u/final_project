@@ -7,8 +7,17 @@ const Complaints = () => {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
-  // Fetch user profile from backend
   const [userProfile, setUserProfile] = useState(null);
+  const [currentRoom, setCurrentRoom] = useState(null);
+  const [chatLog, setChatLog] = useState([]);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [customInput, setCustomInput] = useState("");
+  const [complaintData, setComplaintData] = useState({
+    complaintType: "",
+    problem: "",
+  });
+
+  // Fetch user profile
   useEffect(() => {
     const fetchUserProfile = async () => {
       try {
@@ -23,17 +32,18 @@ const Complaints = () => {
     fetchUserProfile();
   }, [token]);
 
-  // Redirect user if no valid profile is found
+  // Fetch booked room details (to get room number) and redirect if not found
   useEffect(() => {
     const fetchBookedRoom = async () => {
       try {
         const response = await axios.get("http://localhost:5000/api/room/book", {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (response.data.room) {
-          console.log("Booked room found:");
+          console.log("Booked room found:", response.data.room);
+          setCurrentRoom(response.data.room.roomNumber);
         } else {
-          alert("You do not have a booked room. Redirecting to homepage.",response.data.room);
+          alert("You do not have a booked room. Redirecting to homepage.");
           navigate("/home");
         }
       } catch (error) {
@@ -41,11 +51,10 @@ const Complaints = () => {
         navigate("/home");
       }
     };
-
     fetchBookedRoom();
   }, [token, navigate]);
 
-  // Chat flow structure – note that name & email steps are removed.
+  // Chat flow steps
   const chatSteps = {
     1: {
       id: 1,
@@ -101,7 +110,7 @@ const Complaints = () => {
     6: {
       id: 6,
       message: "Please describe your issue:",
-      input: true, // Free text input
+      input: true,
       next: "submit",
     },
     submit: {
@@ -110,37 +119,24 @@ const Complaints = () => {
     },
   };
 
-  // State management for chat flow
-  const [currentStep, setCurrentStep] = useState(1);
-  const [chatLog, setChatLog] = useState([]);
-  const [customInput, setCustomInput] = useState("");
-  // complaintData holds the complaint type and issue; name and email will be added from userProfile
-  const [complaintData, setComplaintData] = useState({
-    complaintType: "",
-    problem: "",
-  });
-
-  // Handle option click from predefined choices
+  // Handle predefined option click
   const handleOptionClick = (option) => {
     const nextStep = option.next;
-    // Log user choice and next bot message
     setChatLog((prev) => [
       ...prev,
       { sender: "user", message: option.label },
       { sender: "bot", message: chatSteps[nextStep].message },
     ]);
-    // Save complaint type from first step
     if (currentStep === 1) {
       setComplaintData((prev) => ({ ...prev, complaintType: option.label }));
     }
-    // For a predefined problem option, update complaint problem and jump to submission step
     if (nextStep === "submit") {
       setComplaintData((prev) => ({ ...prev, problem: option.label }));
     }
     setCurrentStep(nextStep);
   };
 
-  // Handle free text input for step 6
+  // Handle free text input (step 6)
   const handleInputSubmit = () => {
     const nextStep = chatSteps[currentStep].next;
     setChatLog((prev) => [
@@ -155,20 +151,25 @@ const Complaints = () => {
     setCurrentStep(nextStep);
   };
 
-  // Final complaint submission
+  // Final complaint submission with room number added
   const handleSubmit = () => {
     const finalData = {
       ...complaintData,
       name: userProfile?.name || "Unknown",
       email: userProfile?.email || "Unknown",
+      roomNumber: currentRoom || "Not Booked",
     };
 
-    fetch("/api/complaints", {
+    fetch("http://localhost:5000/api/complaints", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(finalData),
     })
       .then((response) => {
+        console.log("Response:", response);
         if (response.ok) {
           alert("Complaint submitted successfully!");
           setChatLog([]);
@@ -188,22 +189,26 @@ const Complaints = () => {
     <div className="container complaints mt-5">
       <h2 className="text-center mb-4">Chat Assistant - Raise a Complaint</h2>
       <div className="chat-box">
-        {/* Render chat log */}
         <div className="chat-log">
           {chatLog.map((entry, index) => (
             <div
               key={index}
-              className={`chat-message ${entry.sender === "bot" ? "bot-message" : "user-message"}`}
+              className={`chat-message ${
+                entry.sender === "bot" ? "bot-message" : "user-message"
+              }`}
             >
               {entry.message}
             </div>
           ))}
         </div>
-        {/* Render input/options */}
         <div className="chat-input">
           {chatSteps[currentStep].options ? (
             chatSteps[currentStep].options.map((option, index) => (
-              <button key={index} className="btn btn-primary m-2" onClick={() => handleOptionClick(option)}>
+              <button
+                key={index}
+                className="btn btn-primary m-2"
+                onClick={() => handleOptionClick(option)}
+              >
                 {option.label}
               </button>
             ))
@@ -236,7 +241,6 @@ const Complaints = () => {
           ) : null}
         </div>
       </div>
-      {/* Navigation button */}
       <div className="mt-4 text-center">
         <Link to="/user-complaints" className="btn btn-info">
           View My Complaints

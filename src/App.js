@@ -20,6 +20,7 @@ import UserComplaintsPage from "./components/user/UserComplaintsPage.js";
 import VacateRoom from "./components/user/VacateRoom.js";
 import Profile from "./components/user/Profile.js";
 import ProfileView from "./components/user/profileview.js";
+import UserOutpasses from "./components/user/UserOutpasses.js";
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
         <Route path="/vacate" element={<VacateRoom />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profileview" element={<ProfileView />} />
+        <Route path="/user-outpasses" element={<UserOutpasses />} />
 
         {/* Admin Routes */}
         <Route path="/admin" element={<Adminhome />} />

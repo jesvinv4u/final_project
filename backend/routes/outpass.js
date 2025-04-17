@@ -4,37 +4,39 @@ import authMiddleware from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// POST: Create a new outpass request
-router.post("/create", authMiddleware, async (req, res) => {
+// POST: Create a new outpass ticket
+router.post("/", authMiddleware, async (req, res) => {
   try {
-    const { name, email, contactNumber, reason, date, time } = req.body;
+    const userId = String(req.user.id);
+    const { name, year, roomNumber, reason, checkIn, checkOut } = req.body;
 
-    // Validate required fields
-    if (!name || !email || !contactNumber || !reason || !date || !time) {
-      return res.status(400).json({ message: "Please fill in all required fields." });
+    if (!name || !year || !roomNumber || !reason || !checkIn || !checkOut) {
+      return res.status(400).json({ message: "Please provide all required fields." });
     }
-
-    const newOutpass = new Outpass({
-      name,
-      email,
-      contactNumber,
-      reason,
-      date,
-      time
-    });
-    
+    const newOutpass = new Outpass({ userId,name, year, roomNumber, reason, checkIn, checkOut });
     await newOutpass.save();
-    return res.status(201).json(newOutpass);
+
+    res.status(201).json(newOutpass);
   } catch (error) {
     console.error("Error creating outpass:", error);
-    return res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
 // GET: Fetch all outpass requests (optionally for admin review)
-router.get("/", authMiddleware, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const outpasses = await Outpass.find();
+    return res.json(outpasses);
+  } catch (error) {
+    console.error("Error fetching outpasses:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+router.get("/:userid", authMiddleware, async (req, res) => {
+  try {
+    const outpasses = await Outpass.find({ userId: req.params.userid });
     return res.json(outpasses);
   } catch (error) {
     console.error("Error fetching outpasses:", error);
