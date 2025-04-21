@@ -56,7 +56,7 @@
 }
 
 .input-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.7rem;
 }
 
 .input-group label {
@@ -84,14 +84,14 @@
   background: #f8f9fa;
   padding: 1.5rem;
   border-radius: 12px;
-  margin: 1.5rem 0;
+  margin: 1.5rem;
 }
 
 .terms-section {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 1.5rem 0;
+  margin: 1.5rem;
 }
 
 .terms-section input[type="checkbox"] {

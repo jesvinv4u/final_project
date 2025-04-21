@@ -30,7 +30,7 @@ router.get('/me', authMiddleware, async (req, res) => {
 });
 
 // PUT /:id/complete-profile - Update user profile
-router.put('/:id/complete-profile', authMiddleware, async (req, res) => {
+router.put('/:id/complete-profile',async (req, res) => {
   try {
     console.log("PUT /complete-profile called with id:", req.params.id);
     console.log("Request body:", req.body);
