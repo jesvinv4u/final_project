@@ -1,6 +1,6 @@
 # Hostel Hub: Smart Allocation and Response Architecture for Student Hostels
 
-This project is a Node.js-based backend for managing room bookings and vacate requests. It provides functionality for users to register, book rooms, update their profiles, and for administrators to approve or reject vacate requests.
+This project is a Node.js-based backend for managing room bookings, vacate requests, outpass requests, and complaints for student hostels. It provides functionality for users to register, book rooms, update their profiles, and for administrators to review and manage vacate requests, outpass requests, and complaints.
 
 ## Features
 
@@ -11,11 +11,20 @@ This project is a Node.js-based backend for managing room bookings and vacate re
 - **Room Booking**  
   - Users can book a room (single-occupant system).
   - The system tracks room availability and booking details.
-
+  
 - **Vacate Requests**  
   - Users can submit a vacate request.
   - Admin panel to review, approve, or reject vacate requests.
   - On approval, room booking details (bookedBy, department, year) are cleared and room availability is updated.
+
+- **Outpass Management**  
+  - Users can generate an outpass to leave the hostel.
+  - Outpass details include applicant information, purpose, check-in and check-out dates.
+  - Users can view their past outpass records.
+
+- **Complaints & Support Tickets**  
+  - Users can raise complaints regarding facilities, mess, room issues, etc.
+  - Tickets/complaints can be reviewed by admins for appropriate follow-up.
 
 ## Technologies Used
 
@@ -36,16 +45,20 @@ project/
 │   │   ├── Room.js              # Room schema and model
 │   │   ├── user.js              # User schema and model
 │   │   ├── vacateticket.js      # Vacate Ticket schema and model
-│   │   └── admin.js             # Admin schema and model (if separate)
+│   │   ├── admin.js             # Admin schema and model (if separate)
+│   │   └── ... (other models as needed)
 │   │
 │   ├── routes/
 │   │   ├── auth.js              # Authentication (register and login) routes
 │   │   ├── bookroom.js          # Room booking routes
 │   │   ├── adminvacate.js       # Admin vacate request processing routes
+│   │   ├── outpass.js           # Outpass request routes
+│   │   ├── complaints.js        # Complaint-related routes
+│   │   ├── ticket.js            # Ticket-related routes for support
 │   │   └── user.js              # User routes for profile and other functionalities
 │   │
 │   ├── middleware/
-│   │   ├── authMiddleware.js    # Authentication middleware to secure routes
+│   │   ├── authMiddleware.js       # Authentication middleware to secure routes
 │   │   └── adminAuthMiddleware.js  # Admin-specific authentication middleware
 │   │
 │   └── server.js                # Main server file to start Express
@@ -96,7 +109,7 @@ project/
     "email": "john.doe@example.com",
     "password": "your_secure_password"
   }
-  ```
+  ```  
   *Registers a new user.*
 
 - **POST** `/api/auth/login`  
@@ -106,7 +119,7 @@ project/
     "email": "john.doe@example.com",
     "password": "your_secure_password"
   }
-  ```
+  ```  
   *Logs in a user and returns a JWT token.*
 
 ### Room Booking
@@ -132,8 +145,29 @@ project/
   {
     "status": "approved"  // or "rejected"
   }
-  ```
+  ```  
   *Updates the vacate ticket status. If approved, clears the room booking details and updates availability.*
+
+### Outpass Management
+
+- **POST** `/api/outpass`  
+  *Headers*: `Authorization: Bearer YOUR_TOKEN_HERE`  
+  *Body (JSON)*:
+  ```json
+  {
+    "name": "John Doe",
+    "year": "2",
+    "roomNumber": "101",
+    "reason": "Personal errand",
+    "checkIn": "2025-04-26T00:00:00.000Z",
+    "checkOut": "2025-04-25T00:00:00.000Z"
+  }
+  ```  
+  *Creates a new outpass request.*
+
+- **GET** `/api/outpass/:userid`  
+  *Headers*: `Authorization: Bearer YOUR_TOKEN_HERE`  
+  *Returns outpass records filtered by the given user id.*
 
 ### User Profile
 
@@ -146,16 +180,26 @@ project/
   *Body*: multipart/form-data with fields (name, dob, gender, contactNumber, etc.) and optionally files under `documents`.  
   *Updates the user's complete profile.*
 
+### Ticket and Complaints
+
+- **POST** `/api/ticket`  
+  *Headers*: `Authorization: Bearer YOUR_TOKEN_HERE`  
+  *Creates a new support ticket or complaint.*
+
+- **GET** `/api/complaints`  
+  *Headers*: `Authorization: Bearer YOUR_TOKEN_HERE`  
+  *Returns complaints submitted by the user.*
+
 ## Postman Test Examples
 
-For testing endpoints by Postman, refer to the [Postman documentation](https://learning.postman.com/docs/getting-started/introduction/).
+For testing endpoints via Postman, refer to the [Postman documentation](https://learning.postman.com/docs/getting-started/introduction/).
 
 ### Example: User Registration Test
 
 - **Method:** POST  
 - **URL:** `http://localhost:5000/api/auth/register`  
 - **Headers:**
-  - `Content-Type: application/json`
+  - `Content-Type: application/json`  
 - **Body (raw JSON):**
   ```json
   {
@@ -171,7 +215,7 @@ For testing endpoints by Postman, refer to the [Postman documentation](https://l
 - **URL:** `http://localhost:5000/api/user/<userId>/complete-profile`  
   *(Replace `<userId>` with the actual user id)*  
 - **Headers:**
-  - `Authorization: Bearer YOUR_TOKEN_HERE`
+  - `Authorization: Bearer YOUR_TOKEN_HERE`  
 - **Body (form-data):**
   - Key: `name` – Value: `John Doe`
   - Key: `dob` – Value: `1990-01-01`
